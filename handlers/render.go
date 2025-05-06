@@ -5,21 +5,20 @@ import (
 	"io"
 	"strings"
 	"trivia-app/dlog"
+	"trivia-app/views"
 )
-
-type Count struct {
-	Count int
-}
 
 type Play struct {
 	Ready bool
 }
 
-func RenderTemplate(w io.Writer, filename string, data interface{}) {
-	// load layout and page files
-	tmpl := template.Must(template.New("layout").ParseFiles("views/layout.html", "views/pages/"+filename))
-	// load component files
-	tmpl = template.Must(tmpl.ParseGlob("views/components/*.html"))
+func RenderTemplate(w io.Writer, filename string, data any) {
+	// parse layout
+	tmpl := template.Must(template.New("layout").Parse(views.Layout))
+	// parse pages
+	tmpl = template.Must(tmpl.ParseFS(views.Pages, "pages/"+filename))
+	// parse components
+	tmpl = template.Must(tmpl.ParseFS(views.Components, "components/*.html"))
 
 	err := tmpl.ExecuteTemplate(w, "layout", data)
 	if err != nil {
@@ -29,8 +28,9 @@ func RenderTemplate(w io.Writer, filename string, data interface{}) {
 	}
 }
 
-func RenderComponent(w io.Writer, filename string, data interface{}) {
-	tmpl := template.Must(template.ParseFiles("views/components/" + filename))
+func RenderComponent(w io.Writer, filename string, data any) {
+	// parse component
+	tmpl := template.Must(template.ParseFS(views.Components, "components/"+filename))
 
 	err := tmpl.ExecuteTemplate(w, strings.TrimRight(filename, ".html"), data)
 	if err != nil {
